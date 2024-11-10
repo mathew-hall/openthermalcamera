@@ -491,6 +491,35 @@ class OTC {
 
                 break;
 
+            case Protocol.RSP_SERIAL_FRAME:
+                for(int y = 0; y < IR_HEIGHT; y++){
+                    for(int x = 0; x < IR_WIDTH; x++){
+                        irTemp[x + (y * IR_WIDTH)] = (float) (rsp.data.get(x + (y * IR_WIDTH)) / 100.0);
+                    }
+                }
+
+                //flip  the temperature
+                for(int y = 0; y<IR_HEIGHT; y++){
+                    for(int x = 0; x<IR_WIDTH; x++){
+                        irTempFlipped[x + (y * IR_WIDTH)] = irTemp[IR_WIDTH - 1 - x + (y * IR_WIDTH)];
+                    }
+                }
+
+                //2d
+                for(int i = 0; i<OTC.IR_HEIGHT * OTC.IR_WIDTH; i++){
+                    tempData2D[i / OTC.IR_WIDTH][i % OTC.IR_WIDTH] = irTempFlipped[i];
+                }
+
+                //get min and max temps
+
+                minIrTemp = irTempFlipped[0];
+                maxIrTemp = irTempFlipped[0];
+
+                for(int i = 1; i<IR_WIDTH * IR_HEIGHT; i++){
+                    minIrTemp = Math.min(minIrTemp, irTempFlipped[i]);
+                    maxIrTemp = Math.max(maxIrTemp, irTempFlipped[i]);
+                }
+            break;
             case Protocol.RSP_GET_FRAME_DATA: //GetFrameData
 
                 //framedata are 16bit values, so we combine 2 bytes together

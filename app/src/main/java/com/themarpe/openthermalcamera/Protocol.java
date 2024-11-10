@@ -68,6 +68,7 @@ class Protocol {
 	public static final int RSP_SET_AUTO_FRAME_DATA_SENDING = 0x09;
     public static final int RSP_GET_FIRMWARE_VERSION = 0x0A;
 	public static final int RSP_JUMP_TO_BOOTLOADER = 0x0B;
+	public static final int RSP_SERIAL_FRAME = 0x0C;
 
 	//dataCode
 	public static final int CODE_OK = 0;
