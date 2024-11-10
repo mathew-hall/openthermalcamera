@@ -37,11 +37,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.otaliastudios.cameraview.Audio;
 import com.otaliastudios.cameraview.CameraListener;
 import com.otaliastudios.cameraview.CameraView;
-import com.otaliastudios.cameraview.Gesture;
-import com.otaliastudios.cameraview.GestureAction;
+import com.otaliastudios.cameraview.controls.Audio;
+import com.otaliastudios.cameraview.gesture.Gesture;
+import com.otaliastudios.cameraview.gesture.GestureAction;
 import com.otaliastudios.cameraview.PictureResult;
 
 import org.json.JSONArray;
@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
         setCameraViewEnabled(overlay_enabled);
         camera.setAudio(Audio.OFF);
         //camera.mapGesture(Gesture.PINCH, GestureAction.ZOOM); // Pinch to zoom!
-        camera.mapGesture(Gesture.TAP, GestureAction.FOCUS_WITH_MARKER); // Tap to focus!
+        camera.mapGesture(Gesture.TAP, GestureAction.AUTO_FOCUS); // Tap to focus!
         camera.addCameraListener(new CameraListener() {
             @Override
             public void onPictureTaken(PictureResult pic) {

@@ -24,8 +24,6 @@ import org.xmlpull.v1.XmlPullParser;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.themarpe.openthermalcamera.R;
-
 public class UsbService extends Service {
 
     public static int OTC_PID = 0x2170;
@@ -218,7 +216,7 @@ public class UsbService extends Service {
         filter.addAction(ACTION_USB_PERMISSION);
         filter.addAction(ACTION_USB_DETACHED);
         filter.addAction(ACTION_USB_ATTACHED);
-        registerReceiver(usbReceiver, filter);
+        registerReceiver(usbReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
     }
 
     /*

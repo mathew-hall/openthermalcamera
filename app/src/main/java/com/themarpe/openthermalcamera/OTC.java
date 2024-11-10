@@ -299,7 +299,7 @@ class OTC {
         filter.addAction(UsbService.ACTION_USB_DISCONNECTED);
         filter.addAction(UsbService.ACTION_USB_NOT_SUPPORTED);
         filter.addAction(UsbService.ACTION_USB_PERMISSION_NOT_GRANTED);
-        ctx.registerReceiver(mUsbReceiver, filter);
+        ctx.registerReceiver(mUsbReceiver, filter, Context.RECEIVER_EXPORTED);
     }
 
     /*

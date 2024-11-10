@@ -39,7 +39,7 @@ public class CoreApp extends Application {
                 //try to rerun mainactivity
                 Intent mStartActivity = new Intent(CoreApp.this, MainActivity.class);
                 int mPendingIntentId = 123456;
-                PendingIntent mPendingIntent = PendingIntent.getActivity(CoreApp.this, mPendingIntentId, mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT);
+                PendingIntent mPendingIntent = PendingIntent.getActivity(CoreApp.this, mPendingIntentId, mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE);
                 AlarmManager mgr = (AlarmManager) CoreApp.this.getSystemService(Context.ALARM_SERVICE);
                 mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 500, mPendingIntent);
             }
