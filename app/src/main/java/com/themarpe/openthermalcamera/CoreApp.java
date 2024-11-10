@@ -9,12 +9,6 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.crashlytics.android.Crashlytics;
-import com.crashlytics.android.core.CrashlyticsCore;
-
-import io.fabric.sdk.android.Fabric;
-import io.fabric.sdk.android.InitializationCallback;
-
 public class CoreApp extends Application {
 
 
@@ -57,29 +51,5 @@ public class CoreApp extends Application {
 
         mDefaultUEH = Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler(mCaughtExceptionHandler);
-
-        //handle CameraView crash and still report to crashlytics
-        CrashlyticsCore core = new CrashlyticsCore.Builder()
-                //.disabled(BuildConfig.DEBUG)
-                .build();
-        Fabric.with(new Fabric.Builder(this).kits(new Crashlytics.Builder()
-                .core(core)
-                .build())
-                .initializationCallback(new InitializationCallback<Fabric>() {
-                    @Override
-                    public void success(Fabric fabric) {
-                        //Thread.setDefaultUncaughtExceptionHandler(mCaughtExceptionHandler);
-                        if(mDefaultUEH != Thread.getDefaultUncaughtExceptionHandler()){
-                            mDefaultUEH = Thread.getDefaultUncaughtExceptionHandler();
-                            Thread.setDefaultUncaughtExceptionHandler(mCaughtExceptionHandler);
-                        }
-                    }
-                    @Override
-                    public void failure(Exception e) {
-
-                    }
-                })
-                .build());
-
     }
 }
