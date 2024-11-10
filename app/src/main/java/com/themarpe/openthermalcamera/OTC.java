@@ -118,7 +118,7 @@ class OTC {
 
         //create the protocol driver if it doesnt exist yet
         if(protocol == null) {
-            protocol = new Protocol(new Protocol.ISender() {
+            protocol = new SerialProtocol(new Protocol.ISender() {
                 @Override
                 public void sendBytes(byte[] bytesToSend) {
                     String test = "[";
