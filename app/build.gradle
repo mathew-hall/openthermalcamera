@@ -1,6 +1,5 @@
 apply plugin: 'com.android.application'
 
-
 android {
     compileSdkVersion 34
     namespace "com.themarpe.openthermalcamera"
@@ -32,3 +31,10 @@ dependencies {
 
 }
 
+tasks.withType(Test) {
+    testLogging {
+        //events "failed","standardOut"
+        events "standardOut", "started", "passed", "skipped", "failed"
+        exceptionFormat "full"
+    }
+}
