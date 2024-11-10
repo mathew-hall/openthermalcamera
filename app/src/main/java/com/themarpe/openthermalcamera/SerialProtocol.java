@@ -9,7 +9,19 @@ public class SerialProtocol extends Protocol{
 
     public SerialProtocol(ISender sender, IResponseListener responseListener) {
         super(sender, responseListener);
-        reader = new SerialReader();
+        reader = new SerialReader(this::handleFrame);
+    }
+
+    public void handleFrame(float[] frame){
+        ArrayList<Integer> raw = new ArrayList<>();
+        for (float v : frame) {
+            raw.add((int) (v * 100));
+        }
+
+        RspStruct rsp = new RspStruct();
+        rsp.responseCode = RSP_GET_FRAME_DATA;
+        rsp.data = raw;
+        responseQueue.add(rsp);
     }
 
     @Override
