@@ -170,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onResponsePost(Protocol.RspStruct rsp) {
-                if(rsp.responseCode == Protocol.RSP_GET_FRAME_DATA){
+                if(rsp.responseCode == Protocol.RSP_GET_FRAME_DATA || rsp.responseCode == Protocol.RSP_SERIAL_FRAME){
 
                     //set temperatures and irView
                     irPicture.updateTemperatureData(otc.getIrTemp());

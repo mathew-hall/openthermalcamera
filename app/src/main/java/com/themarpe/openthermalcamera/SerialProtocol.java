@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 public class SerialProtocol extends Protocol{
 
+    private static final String TAG = "SerialProtocol";
 
     private final SerialReader reader;
 
@@ -19,9 +20,11 @@ public class SerialProtocol extends Protocol{
         }
 
         RspStruct rsp = new RspStruct();
-        rsp.responseCode = RSP_GET_FRAME_DATA;
+        rsp.responseCode = RSP_SERIAL_FRAME;
         rsp.data = raw;
         responseQueue.add(rsp);
+        Log.d(TAG, "Added packet to response queue, size " + responseQueue.size());
+        if(responseListener != null) responseListener.onResponse(responseQueue);
     }
 
     @Override
