@@ -117,8 +117,27 @@ class OTC {
         this.ctx = ctx;
 
         //create the protocol driver if it doesnt exist yet
+        setupProtocol();
+
+        //create usb serial connection
+        if(mHandler == null){
+            mHandler = new MyHandler(() -> this.protocol);
+        }
+    }
+
+
+    void setupProtocol(DeviceType deviceType){
+        Function<Protocol.ISender, Protocol.IResponseListener, Protocol> supplier;
+        switch(deviceType){
+            case OTC:
+            supplier = (sender, listener) -> new Protocol(sender, listener);
+            break;
+            case SERIAL:
+            supplier = (sender, listener) -> new SerialProtocol(sender, listener);
+            break;
+        }
         if(protocol == null) {
-            protocol = new SerialProtocol(new Protocol.ISender() {
+            protocol = supplier.call(new Protocol.ISender() {
                 @Override
                 public void sendBytes(byte[] bytesToSend) {
                     String test = "[";
@@ -144,14 +163,7 @@ class OTC {
                 }
             });
         }
-
-        //create usb serial connection
-        if(mHandler == null){
-            mHandler = new MyHandler(protocol);
-        }
     }
-
-
 
     // Events from UsbService
     private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
@@ -162,6 +174,8 @@ class OTC {
                 case UsbService.ACTION_USB_READY:
                     Toast.makeText(context, "USB Ready", Toast.LENGTH_SHORT).show();
 
+                    DeviceType deviceType = (DeviceType) intent.getSerializableExtra("deviceType");
+                    setupProtocol(deviceType);
                     //usb state disconnected, otc
                     usbState = UsbState.CONNECTED;
                     otcState = OTCState.READY;
@@ -306,10 +320,10 @@ class OTC {
      * This handler will be passed to UsbService. Data received from serial port is displayed through this handler
      */
     private static class MyHandler extends Handler {
-        private final WeakReference<Protocol> mProtocol;
+        private final Supplier<Protocol> mProtocol;
 
-        public MyHandler(Protocol protocol) {
-            mProtocol = new WeakReference<>(protocol);
+        public MyHandler(Supplier<Protocol> protocol) {
+            mProtocol = protocol;
         }
 
         @Override

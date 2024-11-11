@@ -57,6 +57,12 @@ public class UsbService extends Service {
     private UsbDeviceConnection connection;
     private UsbSerialDevice serialPort;
 
+    enum DeviceType {
+        OTC,
+        SERIAL
+    }
+    private DeviceType deviceType = OTC;
+
     private boolean serialPortConnected;
     /*
      *  Data received from serial port will be received here. Just populate onReceivedData with your code
@@ -160,6 +166,27 @@ public class UsbService extends Service {
     private void findSerialPortDevice() {
         // This snippet will try to open the first encountered usb device connected, excluding usb root hubs
         HashMap<String, UsbDevice> usbDevices = usbManager.getDeviceList();
+
+        // Read the xml doc for the OTC vid and pid:
+        //    <usb-device name="otc" vendor-id="4617" product-id="8560" />
+        try {
+            XmlResourceParser parser = context.getResources().getXml(R.xml.otc_device);
+            int event = parser.getEventType();
+            while (event != XmlPullParser.END_DOCUMENT) {
+                if ("usb-device".equals(parser.getName())) {
+                    if ("otc".equals(parser.getAttributeValue(null, "name"))) {
+                        OTC_VID = Integer.parseInt(parser.getAttributeValue(null, "vendor-id"));
+                        OTC_PID = Integer.parseInt(parser.getAttributeValue(null, "product-id"));
+                        Log.d("UsbService", "Succesfully extracted VID/PID from otc_device.xml: VID: " + OTC_VID + " PID: " + OTC_PID);
+                        break;
+                    }
+                }
+                event = parser.next();
+            }
+        } catch (Exception ex){
+            Log.d("UsbService", "Cannot get VID/PID pair from otc_device_device.xml");
+        }
+
         if (!usbDevices.isEmpty()) {
             boolean keep = true;
             for (Map.Entry<String, UsbDevice> entry : usbDevices.entrySet()) {
@@ -167,30 +194,16 @@ public class UsbService extends Service {
                 int deviceVID = device.getVendorId();
                 int devicePID = device.getProductId();
 
-                //    <usb-device name="otc" vendor-id="4617" product-id="8560" />
-                try {
-                    XmlResourceParser parser = context.getResources().getXml(R.xml.otc_device);
-                    int event = parser.getEventType();
-                    while (event != XmlPullParser.END_DOCUMENT) {
-                        if ("usb-device".equals(parser.getName())) {
-                            if ("otc".equals(parser.getAttributeValue(null, "name"))) {
-                                OTC_VID = Integer.parseInt(parser.getAttributeValue(null, "vendor-id"));
-                                OTC_PID = Integer.parseInt(parser.getAttributeValue(null, "product-id"));
-                                Log.d("UsbService", "Succesfully extracted VID/PID from otc_device.xml: VID: " + OTC_VID + " PID: " + OTC_PID);
-                                break;
-                            }
-                        }
-                        event = parser.next();
-                    }
-                } catch (Exception ex){
-                    Log.d("UsbService", "Cannot get VID/PID pair from otc_device_device.xml");
-                }
-
                 if(devicePID == OTC_PID && deviceVID == OTC_VID){
-
                     // There is a device connected to our Android device. Try to open it as a Serial Port.
+                    deviceType = DeviceType.OTC;
                     requestUserPermission();
                     keep = false;
+                } else  if(UsbSerialDevice.isSupported(device)){
+                    Log.d("UsbService", "Found serial device: " + device.getDeviceName());
+                    deviceType = DeviceType.SERIAL;
+                    requestUserPermission();
+                    keep  = false;
                 } else {
                     connection = null;
                     device = null;
@@ -262,6 +275,8 @@ public class UsbService extends Service {
 
                     // Everything went as expected. Send an intent to MainActivity
                     Intent intent = new Intent(ACTION_USB_READY);
+                    //set the protocol type in the intent:
+                    intent.putExtra("deviceType", deviceType);
                     context.sendBroadcast(intent);
                 } else {
                     Log.d("UsbService", "Problems...");
