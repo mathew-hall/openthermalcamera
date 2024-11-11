@@ -506,6 +506,10 @@ class OTC {
                 break;
 
             case Protocol.RSP_SERIAL_FRAME:
+                if(rsp.data.size() != IR_HEIGHT * IR_WIDTH){
+                    Log.w(TAG, String.format("Don't have enough data to render frame - expecting %d but got %d", IR_HEIGHT * IR_WIDTH, rsp.data.size()));
+                    break;
+                }
                 for(int y = 0; y < IR_HEIGHT; y++){
                     for(int x = 0; x < IR_WIDTH; x++){
                         irTemp[x + (y * IR_WIDTH)] = (float) (rsp.data.get(x + (y * IR_WIDTH)) / 100.0);

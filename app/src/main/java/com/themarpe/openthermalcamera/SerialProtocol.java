@@ -16,6 +16,8 @@ public class SerialProtocol extends Protocol{
     public void handleFrame(float[] frame){
         ArrayList<Integer> raw = new ArrayList<>();
         for (float v : frame) {
+            //To avoid messing with the existing API we reverse the division by 100 (we'll redo it
+            // later) - alternatively we could change the type to float.
             raw.add((int) (v * 100));
         }
 
