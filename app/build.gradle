@@ -5,7 +5,7 @@ android {
     namespace "com.themarpe.openthermalcamera"
     defaultConfig {
         applicationId "com.themarpe.openthermalcamera"
-        minSdkVersion 34
+        minSdkVersion 31
         targetSdkVersion 34
         versionCode 2
         versionName "0.2.0"

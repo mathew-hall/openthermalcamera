@@ -19,6 +19,9 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 class OTC {
 
@@ -36,16 +39,16 @@ class OTC {
 
     private static double minIrTemp = 9999.0, maxIrTemp = -9999.0;
 
-    private static double[] irTemp = new double[IR_WIDTH * IR_HEIGHT];
-    private static double[] irTempFlipped = new double[IR_WIDTH * IR_HEIGHT];
+    private static final double[] irTemp = new double[IR_WIDTH * IR_HEIGHT];
+    private static final double[] irTempFlipped = new double[IR_WIDTH * IR_HEIGHT];
 
-    private static int taShift = 8;
+    private static final int taShift = 8;
 
     private Context ctx = null;
 
     private static Protocol protocol = null;
-    private static MLX90640 mlxapi = new MLX90640();
-    private static MLX90640.Params mlxparams = new MLX90640.Params();
+    private static final MLX90640 mlxapi = new MLX90640();
+    private static final MLX90640.Params mlxparams = new MLX90640.Params();
 
     private static boolean parametersAvailable = false;
 
@@ -104,7 +107,7 @@ class OTC {
     StateListener stateListener = null;
 
 
-    private static ArrayList<WeakReference<OTC>> objectReferences = new ArrayList<>();
+    private static final ArrayList<WeakReference<OTC>> objectReferences = new ArrayList<>();
 
     public OTC(Context ctx, StateListener stateListener){
         //add to pool of OTC objects.
@@ -116,50 +119,44 @@ class OTC {
         //context
         this.ctx = ctx;
 
-        //create the protocol driver if it doesnt exist yet
-        setupProtocol();
+
+        setupProtocol(UsbService.DeviceType.OTC);
 
         //create usb serial connection
         if(mHandler == null){
-            mHandler = new MyHandler(() -> this.protocol);
+            mHandler = new MyHandler(() -> protocol);
         }
     }
 
-
-    void setupProtocol(DeviceType deviceType){
-        Function<Protocol.ISender, Protocol.IResponseListener, Protocol> supplier;
+    void setupProtocol(UsbService.DeviceType deviceType){
+        BiFunction<Protocol.ISender, Protocol.IResponseListener, Protocol> supplier;
         switch(deviceType){
-            case OTC:
-            supplier = (sender, listener) -> new Protocol(sender, listener);
-            break;
             case SERIAL:
-            supplier = (sender, listener) -> new SerialProtocol(sender, listener);
+            supplier = SerialProtocol::new;
             break;
+            case OTC:
+            default:
+                supplier = Protocol::new;
+                break;
         }
         if(protocol == null) {
-            protocol = supplier.call(new Protocol.ISender() {
-                @Override
-                public void sendBytes(byte[] bytesToSend) {
-                    String test = "[";
-                    for (int i = 0; i < bytesToSend.length; i++) {
-                        if (i != 0) {
-                            test += " ,";
-                        }
-                        test += bytesToSend[i];
+            protocol = supplier.apply(bytesToSend -> {
+                String test = "[";
+                for (int i = 0; i < bytesToSend.length; i++) {
+                    if (i != 0) {
+                        test += " ,";
                     }
-                    test += "]";
-                    Log.d("OTC", "About to send " + bytesToSend.length + " = " + test);
-                    if (usbService != null) {
-                        usbService.write(bytesToSend);
-                    }
+                    test += bytesToSend[i];
                 }
-            }, new Protocol.IResponseListener() {
-                @Override
-                public void onResponse(Queue<Protocol.RspStruct> q) {
-                    while (q.size() > 0) {
-                        Protocol.RspStruct rsp = q.poll();
-                        handleResponse(rsp);
-                    }
+                test += "]";
+                Log.d("OTC", "About to send " + bytesToSend.length + " = " + test);
+                if (usbService != null) {
+                    usbService.write(bytesToSend);
+                }
+            }, q -> {
+                while (!q.isEmpty()) {
+                    Protocol.RspStruct rsp = q.poll();
+                    handleResponse(rsp);
                 }
             });
         }
@@ -174,7 +171,10 @@ class OTC {
                 case UsbService.ACTION_USB_READY:
                     Toast.makeText(context, "USB Ready", Toast.LENGTH_SHORT).show();
 
-                    DeviceType deviceType = (DeviceType) intent.getSerializableExtra("deviceType");
+                    UsbService.DeviceType deviceType = (UsbService.DeviceType) intent.getSerializableExtra("deviceType");
+                    assert deviceType != null;
+
+                    protocol = null;
                     setupProtocol(deviceType);
                     //usb state disconnected, otc
                     usbState = UsbState.CONNECTED;
@@ -282,7 +282,7 @@ class OTC {
     }
 
     public void setEmissivity(double emissivity){
-        this.emissivity = emissivity;
+        OTC.emissivity = emissivity;
     }
 
     public double getEmissivity(){
@@ -490,7 +490,7 @@ class OTC {
                 //eeDump are 16bit values, so we combine 2 bytes together
                 int[] eedump = new int[832];
                 for(int i = 0; i<832; i++){
-                    eedump[i] = ((rsp.data.get(i*2 + 0) & 0xFF) << 8) | ((rsp.data.get(i*2 + 1) & 0xFF));
+                    eedump[i] = ((rsp.data.get(i * 2) & 0xFF) << 8) | ((rsp.data.get(i*2 + 1) & 0xFF));
                 }
 
                 //extract parameters
@@ -539,7 +539,7 @@ class OTC {
                 //framedata are 16bit values, so we combine 2 bytes together
                 int[] frameData = new int[834];
                 for(int i = 0; i<834; i++){
-                    frameData[i] = ((rsp.data.get(i*2 + 0) & 0xFF) << 8) | ((rsp.data.get(i*2 + 1) & 0xFF));
+                    frameData[i] = ((rsp.data.get(i * 2) & 0xFF) << 8) | ((rsp.data.get(i*2 + 1) & 0xFF));
                 }
 
                 //Log.d("GetFrameData", "rsp.data.size() = " + rsp.data.size() + ", rsp.dataLength = " + rsp.dataLength);
