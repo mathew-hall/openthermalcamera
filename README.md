@@ -16,6 +16,8 @@ The repo has also been updated to a newer Android SDK and lost the crashlytics/f
 
 An MLX90640 module with TX and RX pins and a supported USB -> Serial adapter. See the [UsbSerial](https://github.com/felHR85/UsbSerial) library documentation for a list of supported devices.
 
+*Note* I strongly encourage checking the voltages (VCC, TX and RX pins) of any serial adapter before connecting it to the module - I found at least one USBC adapter that used a couple of diodes to drop 5V down to 3.6V instead of a proper regulator. The module may tolerate that, but YMMV.
+
 # Known issues
 
 I was unable to test the stability of the original implementation so I am not sure if this version is materially worse. Where possible I've tried to maintain backwards compatibility - the original OTC device should work with this build as the code paths should still be there. Since the Android SDK has jumped quite a bit it's likely this bundles some incorrect/to-be-deprecated usage of the APIs and might not be as stable, but it's been sufficient for my needs.
