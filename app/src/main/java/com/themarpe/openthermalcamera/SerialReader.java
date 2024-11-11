@@ -56,7 +56,7 @@ public class SerialReader {
                 }
                 return 1;
             case READ_LENGTH:
-                length = (b2<<8) & 0xff00 | b1 & 0xff;
+                length = ((b2<<8) & 0xff00 | b1 & 0xff) /2 -1; //sub 1 for parity bytes that follow frame.
                 state = State.READ_FRAME;
                 frame = new float[length];
                 frameIndex = 0;
@@ -74,6 +74,7 @@ public class SerialReader {
                 state = State.READ_PARITY;
                 return 2;
             case READ_PARITY:
+                Log.d(TAG, "Finished reading frame, calling handler");
                 frameConsumer.accept(frame);
                 state = State.LOOK_FOR_START;
                 return 2;
